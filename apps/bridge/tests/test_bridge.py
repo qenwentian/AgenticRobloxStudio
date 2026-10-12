@@ -1,5 +1,6 @@
 import hashlib
 import time
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -88,6 +89,44 @@ def test_bridge_pairing_origins_and_scopes(bridge):
         == 403
     )
     assert TestClient(bridge["app"], base_url="http://127.0.0.1").get("/project").status_code == 401
+
+
+def test_paired_studio_credential_lasts_for_the_bridge_session(bridge, monkeypatch):
+    client = bridge["client"]
+    paired = client.post("/pair", json={"code": "one-time-pairing-code"}).json()
+    token = paired["token"]
+    assert paired["expires_at"] is None
+    assert paired["studio_label"] == "Studio 1"
+    # The code is burned on use, but the paired credential outlives it.
+    assert client.post("/pair", json={"code": "one-time-pairing-code"}).status_code == 403
+    # A second window pairs with a fresh code and is labelled separately.
+    bridge["app"].state.pairing.update(
+        code="second-pairing-code", expires=time.time() + 300, attempts=0
+    )
+    second = client.post("/pair", json={"code": "second-pairing-code"}).json()
+    assert second["studio_label"] == "Studio 2" and second["token"] != token
+    bridge["app"].state.pairing.update(code="unused-code", expires=time.time() + 300, attempts=0)
+    later = time.time() + 3600 * 24
+    monkeypatch.setattr("studiosync_bridge.app.time", SimpleNamespace(time=lambda: later))
+    assert client.get("/project", headers={"X-Bridge-Token": token}).json()["ok"]
+    # An unused code still expires, so a stale code cannot be reused a day later.
+    bridge["app"].state.pairing.update(code="unused-code", expires=later - 1, attempts=0)
+    assert client.post("/pair", json={"code": "unused-code"}).status_code == 403
+
+
+def test_studio_disconnect_revokes_only_its_own_window(bridge):
+    client = bridge["client"]
+    first = client.post("/pair", json={"code": "one-time-pairing-code"}).json()["token"]
+    bridge["app"].state.pairing.update(
+        code="second-pairing-code", expires=time.time() + 300, attempts=0
+    )
+    second = client.post("/pair", json={"code": "second-pairing-code"}).json()["token"]
+    headers = {"X-Bridge-Token": first}
+    assert client.get("/project", headers=headers).json()["ok"]
+    assert client.post("/disconnect", headers=headers).json()["ok"]
+    assert client.get("/project", headers=headers).status_code == 401
+    assert client.get("/project", headers={"X-Bridge-Token": second}).json()["ok"]
+    assert client.get("/health").json()["status"] in {"ok", "disconnected"}
 
 
 @pytest.mark.parametrize(

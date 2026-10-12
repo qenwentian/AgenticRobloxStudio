@@ -57,8 +57,16 @@ developer credentials, local configurations or database. Keep the private worksp
 out of source control; DPAPI does not isolate software running as the same Windows account.
 
 The localhost bridge uses a separate master token. Pairing codes are random, single-use,
-five-minute values with a five-attempt ceiling. Studio tokens expire after 15 minutes and may
-not read/write source files or retrieve master credentials. Tokens remain in plugin memory.
+five-minute values with a five-attempt ceiling. A paired Studio token lives only as long as the
+bridge process that issued it, and the plugin can end it explicitly with `/disconnect`. Studio
+tokens may not read/write source files or retrieve master credentials. Tokens remain in plugin
+memory. Restarting the bridge invalidates every paired Studio token, and each paired window is
+labelled separately so two Studio windows stay distinguishable as agents.
+
+Authority stays role-scoped: only the project owner dissolves another developer's lease, while
+a developer may force-release a lease its own agent holds. Conflicts may be resolved by the
+owner, by the developer who reported them, or by a developer whose agent the conflict names;
+viewers read only. Every resolution stores its actor and reason in the conflict history.
 Local master configuration is not an OS secret vault; protect it with account permissions.
 Processes on the same account can read their own environment/files; localhost auth does not
 isolate malicious software running as that account.

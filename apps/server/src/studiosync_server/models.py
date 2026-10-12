@@ -210,6 +210,7 @@ class Conflict(Base):
     description: Mapped[str] = mapped_column(String(10000))
     status: Mapped[str] = mapped_column(String(20), default="OPEN")
     history: Mapped[list] = mapped_column(JSON, default=list)
+    reported_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[float] = mapped_column(Float, default=time.time)
 
 

@@ -75,9 +75,11 @@ and the one-time pairing code printed by `studiosync bridge start`. Click **Pair
 connection**. Allow the plugin's requested localhost HTTP permission if Studio prompts.
 If Studio refuses HTTP, inspect its plugin permissions and the troubleshooting guide.
 
-The Studio credential lasts 15 minutes and stays in plugin memory. Generate a fresh code using
-`studiosync bridge pair` when it expires. The plugin never stores backend credentials or edits
-game source. Overview inspects selection ownership; other tabs show agents, tasks, reservations,
+Only the unused pairing code expires (five minutes, single use). After pairing, the Studio
+credential stays valid until the bridge process exits or you disconnect it in Settings, and it
+lives in plugin memory only. Restarting the bridge needs a fresh code from
+`studiosync bridge pair`, because that credential is scoped to the bridge process. The plugin
+never stores backend credentials or edits game source. Overview inspects selection ownership; other tabs show agents, tasks, reservations,
 messages, contracts and conflicts. Backend authorization applies to every action. Script edits
 produce observable reservation warnings where ScriptEditorService emits changes.
 

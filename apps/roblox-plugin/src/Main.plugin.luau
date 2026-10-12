@@ -24,10 +24,13 @@ local background = Color3.fromRGB(22, 25, 32)
 local panel = Color3.fromRGB(34, 39, 49)
 local foreground = Color3.fromRGB(222, 229, 241)
 local accent = Color3.fromRGB(113, 195, 170)
-local root = Instance.new("Frame")
+local root = Instance.new("ScrollingFrame")
 root.BackgroundColor3 = background
 root.BorderSizePixel = 0
 root.Size = UDim2.fromScale(1, 1)
+root.AutomaticCanvasSize = Enum.AutomaticSize.Y
+root.CanvasSize = UDim2.fromOffset(0, 0)
+root.ScrollBarThickness = 5
 root.Parent = widget
 local padding = Instance.new("UIPadding")
 padding.PaddingLeft = UDim.new(0, 12)
@@ -95,7 +98,7 @@ local function button(parent: Instance, text: string, callback: () -> ()): TextB
 	item.Size = UDim2.new(1, 0, 0, 30)
 	item.LayoutOrder = order
 	item.Parent = parent
-	item.Activated:Connect(callback)
+	item.MouseButton1Click:Connect(callback)
 	return item
 end
 
@@ -115,13 +118,11 @@ grid.CellSize = UDim2.new(1 / 3, -5, 0, 28)
 grid.CellPadding = UDim2.fromOffset(5, 5)
 grid.SortOrder = Enum.SortOrder.LayoutOrder
 grid.Parent = navigation
-local content = Instance.new("ScrollingFrame")
+local content = Instance.new("Frame")
 content.BackgroundTransparency = 1
 content.BorderSizePixel = 0
-content.Size = UDim2.new(1, 0, 1, -180)
-content.AutomaticCanvasSize = Enum.AutomaticSize.Y
-content.CanvasSize = UDim2.fromOffset(0, 0)
-content.ScrollBarThickness = 5
+content.Size = UDim2.new(1, 0, 0, 0)
+content.AutomaticSize = Enum.AutomaticSize.Y
 content.LayoutOrder = 5
 content.Parent = root
 local contentLayout = Instance.new("UIListLayout")
@@ -136,6 +137,7 @@ local notifications: boolean = plugin:GetSetting("StudioSyncNotifications") ~= f
 local token: string? = nil -- Short-lived Studio credential stays in memory, never in plugin settings.
 local tokenExpiry = 0
 local sessionId: string? = nil
+local agentId: string? = nil
 local workspaceId: string? = nil
 local developerId: string? = nil
 local data: any = nil
@@ -181,7 +183,9 @@ local function request(method: string, path: string, payload: any?): (boolean, a
 	if not response.Success or result.ok == false then
 		local errorData = result.error
 		if errorData and errorData.code == "UNAUTHENTICATED" then
+			-- The bridge restarted or the session was revoked; a fresh code is required.
 			token = nil
+			connection.Text = "Bridge session ended · Pair again in Settings with a fresh code"
 		end
 		return false,
 			if errorData
@@ -250,6 +254,19 @@ local function clearContent()
 	order = 0
 end
 
+local function studioLabel(): string
+	-- Each open place and each paired window should be tellable apart in the dashboard.
+	local name = tostring(game.Name)
+	if name == "" then
+		name = "Studio"
+	end
+	local origin = if game.PlaceId and game.PlaceId ~= 0
+		then "#" .. tostring(game.PlaceId)
+		elseif game.JobId ~= "" then "team"
+		else "local"
+	return string.sub(name, 1, 48) .. " " .. origin
+end
+
 local function settings()
 	label(content, "LOCAL BRIDGE  /  Session pairing", 25)
 	local url = box(content, "http://127.0.0.1:8766", 30)
@@ -269,21 +286,41 @@ local function settings()
 				notice.Text = tostring(paired)
 				return
 			end
-			token, tokenExpiry = paired.token, paired.expires_at
-			sessionId = nil
+			token, tokenExpiry = paired.token, tonumber(paired.expires_at) or math.huge
+			sessionId, agentId = nil, nil
 			held = {}
 			workspaceId, developerId = paired.workspace_id, paired.developer_id
+			local label = studioLabel()
+				.. " · "
+				.. (paired.studio_label or "Studio")
+				.. " · "
+				.. string.sub(developerId :: string, 1, 8)
 			local registered, result = request("POST", "/actions/register_agent", {
-				display_name = "Studio observer " .. string.sub(developerId :: string, 1, 8),
+				display_name = string.sub(label, 1, 100),
 				workspace_id = workspaceId,
 				capabilities = { "studio-monitoring" },
 			})
 			if registered then
 				sessionId = result.data.session.id
+				agentId = result.data.agent.id
 			end
 			currentTab = "Overview"
-			notice.Text = "Paired. Credential expires in 15 minutes; use bridge pair to reconnect."
+			notice.Text = "Paired. This session stays connected until the bridge or Studio closes."
 			refresh()
+		end)
+	end)
+	button(content, "Disconnect this Studio session", function()
+		task.spawn(function()
+			local ok, result = request("POST", "/disconnect", nil)
+			token, tokenExpiry = nil, 0
+			sessionId, agentId = nil, nil
+			held = {}
+			data = nil
+			connection.Text = "Disconnected · Pair your local bridge in Settings"
+			notice.Text = if ok
+				then "Studio credential revoked on the bridge. Pair again with a fresh code."
+				else tostring(result)
+			render()
 		end)
 	end)
 	local rate = box(content, "Refresh seconds (3–30)", 30)
@@ -307,6 +344,7 @@ local function settings()
 		"Project and developer come from the bridge workspace configuration. Run studiosync init in each checkout.\nPairing credentials stay in plugin memory. Backend credentials stay on the developer machine.",
 		95
 	)
+	label(content, "This window reports as: " .. studioLabel() .. " · one agent per window.", 40)
 	if developerId then
 		label(content, "Developer: " .. developerId .. "\nWorkspace: " .. tostring(workspaceId), 70)
 	end
@@ -595,7 +633,11 @@ render = function()
 					.. table.concat(conflict.agents, ", "),
 				125
 			)
-			if data.role == "OWNER" and conflict.status ~= "RESOLVED" and conflict.status ~= "DISMISSED" then
+			if
+				(data.role == "OWNER" or conflict.reported_by == developerId)
+				and conflict.status ~= "RESOLVED"
+				and conflict.status ~= "DISMISSED"
+			then
 				local reason = box(content, "Resolution reason (does not change files)", 30)
 				button(content, "Mark resolved after inspection", function()
 					act(
@@ -650,7 +692,6 @@ for _, tab in { "Overview", "Agents", "Tasks", "Reservations", "Messages", "Conf
 end
 -- Seven tabs occupy three rows; keep the content clear of the last settings button.
 navigation.Size = UDim2.new(1, 0, 0, 95)
-content.Size = UDim2.new(1, 0, 1, -215)
 
 local selectionConnection = Selection.SelectionChanged:Connect(function()
 	selectedPath()
@@ -688,7 +729,8 @@ local editConnection = ScriptEditorService.TextDocumentDidChange:Connect(functio
 						request("POST", "/actions/report_conflict", {
 							category = "STUDIO_EDIT",
 							resources = { path },
-							agents = { lease.agent_id },
+							-- Both sides are named so the reporter and the reserver can close it.
+							agents = if agentId then { lease.agent_id, agentId } else { lease.agent_id },
 							description = "Observed ScriptEditorService edit in a reserved display path. Editing identity cannot be proven.",
 						})
 					end
@@ -700,6 +742,7 @@ end)
 plugin.Unloading:Connect(function()
 	running = false
 	token = nil
+	agentId = nil
 	selectionConnection:Disconnect()
 	editConnection:Disconnect()
 	widget:Destroy()
@@ -711,7 +754,7 @@ task.spawn(function()
 		if token and os.time() >= tokenExpiry then
 			token = nil
 			connection.Text =
-				"Pairing credential expired. Run studiosync bridge pair and reconnect in Settings."
+				"Session credential expired. Run studiosync bridge pair and reconnect in Settings."
 		end
 		if token then
 			refresh()

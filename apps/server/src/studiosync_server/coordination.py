@@ -202,10 +202,14 @@ class Coordination(Collaboration):
         return {"released": True, "lease_id": lease.id}
 
     def override_lock(self, payload):
-        self.owner()
+        self.writable()
         lease = self.db.get(Lease, payload.lease_id)
         if not lease:
             raise Rejected("NOT_FOUND", "Lease not found", status=404)
+        if self.role != "OWNER" and not self.own_lease(lease):
+            # A developer may always clear their own stuck reservation; dissolving
+            # another developer's lease stays an owner decision with an audit reason.
+            raise Rejected("FORBIDDEN", "Project owner required", status=403)
         resource = self.scoped(Resource, lease.resource_id)
         if any(overlaps(resource.key, r.key) for _, r in self.pending(resource.key)):
             raise Rejected("WRITE_PENDING", "Reconcile pending writes before overriding")
@@ -411,6 +415,24 @@ class Coordination(Collaboration):
         self.scoped(Task, payload.task_id)
         return {"dependencies": [record(d) for d in self.dependencies(payload.task_id)]}
 
+    def own_lease(self, lease: Lease) -> bool:
+        session = self.db.get(AgentSession, lease.session_id)
+        agent = self.db.get(Agent, session.agent_id) if session else None
+        return bool(agent and agent.user_id == self.user_id)
+
+    def own_agent(self, agent_id: str) -> bool:
+        agent = self.db.get(Agent, agent_id)
+        return bool(agent and agent.user_id == self.user_id)
+
+    def may_resolve_conflict(self, row: Conflict) -> bool:
+        # The owner arbitrates everything; everyone else only closes conflicts they
+        # reported or that list one of their own agents.
+        return (
+            self.role == "OWNER"
+            or row.reported_by == self.user_id
+            or any(self.own_agent(agent_id) for agent_id in (row.agents or []))
+        )
+
     def add_conflict(self, category, resources, agents, description, task_id=None):
         existing = self.db.scalar(
             select(Conflict).where(
@@ -429,6 +451,7 @@ class Coordination(Collaboration):
             agents=agents,
             description=description,
             task_id=task_id,
+            reported_by=self.user_id,
         )
         self.db.add(row)
         self.db.flush()
@@ -464,8 +487,12 @@ class Coordination(Collaboration):
         return {"conflict": record(row)}
 
     def resolve_conflict(self, payload):
-        self.owner()
+        self.writable()
         row = self.scoped(Conflict, payload.conflict_id)
+        if not self.may_resolve_conflict(row):
+            raise Rejected(
+                "FORBIDDEN", "Project owner, reporter or an involved developer required", 403
+            )
         row.status = payload.status
         row.history = row.history + [
             {

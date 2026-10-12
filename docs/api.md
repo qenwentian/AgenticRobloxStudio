@@ -30,12 +30,12 @@ uses `workspace.read_file` and `workspace.controlled_write` and requires the con
 | Identity | register_workspace, register_agent, heartbeat | Developer; session/workspace bound |
 | Tasks | create_task, claim_task, update_task, get_task_dependencies, add_dependency, report_blocker | Developer; assigned-owner transitions; owner reassignment with reason |
 | Leases | acquire_lock, renew_lock, release_lock | Developer; session, opaque token and fence |
-| Overrides | override_lock | Owner; mandatory reason, pending-write barrier |
+| Overrides | override_lock | Owner, or a developer clearing its own lease; mandatory reason, pending-write barrier |
 | Messages | send_message, get_messages, acknowledge_message, request_resource_transfer | Member reads their session inbox; developer sends/acks; scoped replies |
 | Interfaces | publish_interface, get_interface, propose_interface_change, approve_interface, get_affected_agents | Developer proposals; owning agent approval, then consumers confirm |
 | Submissions | submit_work | Assigned agent, task-scoped lease proofs, passing test evidence, dependencies/contracts/conflicts checked |
 | Events | get_activity, get_recent_changes | Project membership; cursor pagination |
-| Conflicts | check_conflicts, report_conflict, resolve_conflict | Member reads; developer reports; owner records resolution |
+| Conflicts | check_conflicts, report_conflict, resolve_conflict | Member reads; developer reports; owner, the reporter or an involved developer records resolution |
 
 Paged lists use offset `cursor` and `limit` (1–200). Activity uses an event-ID cursor with
 strictly increasing ordering. Direct-message bodies are shown only to sender/recipient
@@ -51,14 +51,17 @@ for 90 days by default; tasks, messages, lease history, submissions and conflict
 
 Bind: `127.0.0.1:8766` by default, configurable per workspace. Every endpoint rejects browser
 Origins and unexpected Hosts. `X-Bridge-Token` carries either the local master token or the
-short-lived paired Studio token. `/pair` alone accepts a one-time code without that header.
+paired Studio token. `/pair` alone accepts a one-time code without that header. A paired
+Studio token is valid until the bridge process exits or `POST /disconnect` revokes it; only
+the unused pairing code expires.
 No cookies, CORS wildcard, arbitrary shell endpoints or public file endpoints are provided.
 
 `GET /project` returns the dashboard state; `/agents`, `/tasks`, `/locks`, `/activity`,
 `/conflicts` are compact reads. `/workspace` shows local Git and Rojo metadata. `/health`
 reports backend health, watcher status, queued events, uncertain writes and last Studio poll.
 `POST /actions/{operation}` forwards approved typed actions. Studio may not invoke internal
-write-permit operations or register arbitrary workspaces. Source endpoints are master-only:
+write-permit operations or register arbitrary workspaces. Each `/pair` also returns a
+`studio_label` so concurrent Studio windows of one developer reconcile as separate agents. Source endpoints are master-only:
 `POST /files/read`, `/files/write`, `/files/reconcile`. `POST /pairing/code` issues a new code.
 
 Read resources use `{"resource":"file:src/server/CombatService.luau"}`. Write inputs include

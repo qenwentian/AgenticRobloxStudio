@@ -9,7 +9,7 @@ foundation, not a production certification.
 | Coordination | Serialized acquisition, reader/writer/intent policy, canonical aliases, parent/subtree conflicts, expiry, opaque tokens, fencing, overrides, task claims and status transitions |
 | Collaboration | Private threaded messaging/receipts, acyclic dependencies, explicit blockers, interface versions and consumer approvals, persistent conflicts/events |
 | MCP | Official SDK 1.30.0 stdio discovery, typed inputs/output envelope, real backend tool calls and local guarded-file tools |
-| Bridge | Localhost Host/Origin/credential checks, expiring pairing, revision-checked replacement, persisted permits/journal, uncertain-write reconciliation, actual Watchfiles observations |
+| Bridge | Localhost Host/Origin/credential checks, single-use expiring pairing codes with bridge-lifetime Studio credentials, revision-checked replacement, persisted permits/journal, uncertain-write reconciliation, actual Watchfiles observations |
 | Studio | Dark dockable plugin built by Rojo, compiled by Luau 0.742, StyLua formatting; actual Studio initialization/settings layout succeeded |
 | Git/Rojo | Existing workspace inspection, branch/status/merge conflicts, mapping inspection, submissions, readiness reports and optional pre-commit hook |
 | End to end | Five identities, isolated branches, five actual bridge processes, five actual MCP clients, guarded writes, actual sample Luau tests, submissions, dependency handoff and backend restart |

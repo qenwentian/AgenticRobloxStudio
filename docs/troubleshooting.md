@@ -8,6 +8,7 @@ Run `studiosync doctor` using your installed Python with your current token and 
 | Unauthenticated backend | Log in again; refresh STUDIOSYNC_TOKEN and restart bridge/MCP |
 | Forbidden project | Ask the owner to add the exact developer user ID to the project |
 | Pairing fails/expires | Run `studiosync bridge pair`; enter its fresh single-use code |
+| Studio credential stopped working | The bridge restarted or Studio disconnected; pair again with a fresh code |
 | Studio cannot reach bridge | Confirm process/port, plugin HTTP permission and localhost URL |
 | LOCAL_ORIGIN | Use 127.0.0.1/localhost and the plugin; browser Origin requests are rejected |
 | Session expired | Register a new agent session; reconnect task ownership explicitly |

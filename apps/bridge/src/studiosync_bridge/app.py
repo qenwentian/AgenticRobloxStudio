@@ -47,7 +47,9 @@ def create_bridge(config=None, backend=None, pair_code=None, watch=True):
         "code": pair_code or secrets.token_urlsafe(16),
         "expires": time.time() + 300,
         "attempts": 0,
+        # Only unused codes expire. A token entry of None means it lasts for this bridge process.
         "tokens": {},
+        "paired": 0,
     }
     health = {"last_studio_poll": None, "last_backend_error": None}
 
@@ -91,7 +93,9 @@ def create_bridge(config=None, backend=None, pair_code=None, watch=True):
         supplied = request.headers.get("x-bridge-token", "")
         master = bool(supplied) and secrets.compare_digest(supplied, config.bridge_token)
         now = time.time()
-        pairing["tokens"] = {t: expiry for t, expiry in pairing["tokens"].items() if expiry > now}
+        pairing["tokens"] = {
+            t: expiry for t, expiry in pairing["tokens"].items() if expiry is None or expiry > now
+        }
         studio = supplied in pairing["tokens"]
         if not master and not studio:
             return failure("UNAUTHENTICATED", "Local bridge credential required", 401)
@@ -120,16 +124,26 @@ def create_bridge(config=None, backend=None, pair_code=None, watch=True):
         if not secrets.compare_digest(payload.code, pairing["code"]):
             return failure("PAIRING_FAILED", "Invalid one-time pairing code", 403)
         token = secrets.token_urlsafe(32)
-        expires = time.time() + 900
-        pairing["tokens"][token] = expires
+        # The Studio credential stays valid until this bridge process exits; the plugin drops it
+        # when Studio closes. Only the one-time pairing code above is short-lived.
+        pairing["tokens"][token] = None
         pairing["expires"] = 0
+        # Distinguish concurrent Studio windows of one developer for this bridge run.
+        pairing["paired"] += 1
         return {
             "token": token,
-            "expires_at": expires,
+            "expires_at": None,
+            "studio_label": f"Studio {pairing['paired']}",
             "project_id": config.project_id,
             "developer_id": config.developer_id,
             "workspace_id": config.workspace_id,
         }
+
+    @app.post("/disconnect")
+    def disconnect(request: Request):
+        # Studio may end its own session. The bridge master credential cannot be revoked here.
+        pairing["tokens"].pop(request.headers.get("x-bridge-token", ""), None)
+        return Result(data={"disconnected": True})
 
     @app.post("/pairing/code")
     def pairing_code():
