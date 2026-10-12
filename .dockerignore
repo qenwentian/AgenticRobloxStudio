@@ -1,0 +1,9 @@
+.venv
+.git
+.env
+.studiosync*
+.tools
+*.db*
+build
+test-results
+__pycache__

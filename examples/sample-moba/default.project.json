@@ -1,0 +1,9 @@
+{
+  "name": "StudioSync Sample MOBA",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": { "$path": "src/server" },
+    "ReplicatedStorage": { "$path": "src/shared" },
+    "StarterGui": { "$path": "src/client" }
+  }
+}

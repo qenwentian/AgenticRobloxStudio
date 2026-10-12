@@ -1,0 +1,1 @@
+"""Official MCP SDK adapter."""

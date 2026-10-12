@@ -1,0 +1,1 @@
+"""Workspace-local coordination bridge."""

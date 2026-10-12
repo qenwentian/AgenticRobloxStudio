@@ -1,0 +1,1 @@
+"""Authoritative coordination backend."""

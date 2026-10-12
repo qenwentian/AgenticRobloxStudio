@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "studiosync-ai"
+version = "0.1.0"
+description = "Persistent agent coordination for Roblox development teams"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1", "sqlalchemy>=2.0,<3",
+  "alembic>=1.13,<2", "psycopg[binary]>=3.2,<4", "httpx>=0.27,<1",
+  "mcp>=1.20,<2", "watchfiles>=1,<2", "filelock>=3,<4",
+  "pywin32>=311; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1"]
+bundle = ["pyinstaller>=6,<7"]
+
+[project.scripts]
+studiosync = "studiosync_bridge.cli:main"
+studiosync-mcp = "studiosync_mcp.server:main"
+
+[tool.setuptools]
+packages = ["studiosync_server", "studiosync_bridge", "studiosync_mcp", "studiosync_shared"]
+package-dir = {studiosync_server = "apps/server/src/studiosync_server", studiosync_bridge = "apps/bridge/src/studiosync_bridge", studiosync_mcp = "apps/mcp/src/studiosync_mcp", studiosync_shared = "packages/shared-schemas/studiosync_shared"}
+
+[tool.pytest.ini_options]
+testpaths = ["apps/server/tests", "apps/bridge/tests", "apps/mcp/tests"]
+markers = ["postgres: requires STUDIOSYNC_TEST_POSTGRES_URL", "e2e: starts real subprocesses"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501", "B008"]

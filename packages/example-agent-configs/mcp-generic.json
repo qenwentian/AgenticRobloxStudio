@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "studiosync": {
+      "command": "python",
+      "args": ["-m", "studiosync_mcp.server"],
+      "env": {
+        "STUDIOSYNC_CONFIG": "C:/absolute/path/to/game/.studiosync.json"
+      }
+    }
+  }
+}

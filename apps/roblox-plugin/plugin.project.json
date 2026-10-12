@@ -1,0 +1,7 @@
+{
+  "name": "StudioSync AI",
+  "tree": {
+    "$className": "Model",
+    "StudioSync": { "$path": "src/Main.plugin.luau" }
+  }
+}

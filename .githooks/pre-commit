@@ -1,0 +1,3 @@
+#!/bin/sh
+# Opt in with: git config core.hooksPath .githooks
+exec studiosync precommit

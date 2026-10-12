@@ -1,0 +1,1333 @@
+{
+  "output": {
+    "$defs": {
+      "Error": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "Error",
+        "type": "object"
+      }
+    },
+    "properties": {
+      "ok": {
+        "default": true,
+        "title": "Ok",
+        "type": "boolean"
+      },
+      "data": {
+        "additionalProperties": true,
+        "title": "Data",
+        "type": "object"
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "title": "Result",
+    "type": "object"
+  },
+  "inputs": {
+    "get_project_state": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "list_agents": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "register_workspace": {
+      "additionalProperties": false,
+      "properties": {
+        "device": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Device",
+          "type": "string"
+        },
+        "root_label": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Root Label",
+          "type": "string"
+        },
+        "branch": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Branch",
+          "type": "string"
+        },
+        "mode": {
+          "default": "GIT_ROJO",
+          "enum": [
+            "GIT_ROJO",
+            "TEAM_CREATE"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "device",
+        "root_label"
+      ],
+      "title": "WorkspaceInput",
+      "type": "object"
+    },
+    "register_agent": {
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Display Name",
+          "type": "string"
+        },
+        "workspace_id": {
+          "title": "Workspace Id",
+          "type": "string"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Capabilities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "display_name",
+        "workspace_id"
+      ],
+      "title": "RegisterAgent",
+      "type": "object"
+    },
+    "heartbeat": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "default": "ONLINE",
+          "enum": [
+            "ONLINE",
+            "WORKING",
+            "WAITING",
+            "BLOCKED",
+            "REVIEWING"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "title": "Heartbeat",
+      "type": "object"
+    },
+    "list_tasks": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "create_task": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Description",
+          "type": "string"
+        },
+        "priority": {
+          "default": 2,
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "resources": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Resources",
+          "type": "array"
+        },
+        "acceptance_criteria": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Acceptance Criteria",
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "assigned_agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assigned Agent Id"
+        }
+      },
+      "required": [
+        "session_id",
+        "title"
+      ],
+      "title": "TaskInput",
+      "type": "object"
+    },
+    "claim_task": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id"
+      ],
+      "title": "TaskRef",
+      "type": "object"
+    },
+    "update_task": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "BACKLOG",
+            "READY",
+            "CLAIMED",
+            "IN_PROGRESS",
+            "BLOCKED",
+            "IN_REVIEW",
+            "COMPLETED",
+            "CANCELLED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "assigned_agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assigned Agent Id"
+        },
+        "reason": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id",
+        "status"
+      ],
+      "title": "TaskUpdate",
+      "type": "object"
+    },
+    "get_task_dependencies": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id"
+      ],
+      "title": "TaskRef",
+      "type": "object"
+    },
+    "add_dependency": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "depends_on": {
+          "title": "Depends On",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id",
+        "depends_on"
+      ],
+      "title": "AddDependency",
+      "type": "object"
+    },
+    "list_locks": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "acquire_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "resource": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Resource",
+          "type": "string"
+        },
+        "mode": {
+          "default": "WRITE",
+          "enum": [
+            "READ",
+            "WRITE",
+            "INTENT"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Id"
+        },
+        "ttl": {
+          "default": 60,
+          "maximum": 300,
+          "minimum": 2,
+          "title": "Ttl",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "resource"
+      ],
+      "title": "Acquire",
+      "type": "object"
+    },
+    "renew_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "lease_id": {
+          "title": "Lease Id",
+          "type": "string"
+        },
+        "lease_token": {
+          "title": "Lease Token",
+          "type": "string"
+        },
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        },
+        "ttl": {
+          "default": 60,
+          "maximum": 300,
+          "minimum": 2,
+          "title": "Ttl",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "lease_id",
+        "lease_token",
+        "generation"
+      ],
+      "title": "Renew",
+      "type": "object"
+    },
+    "release_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "lease_id": {
+          "title": "Lease Id",
+          "type": "string"
+        },
+        "lease_token": {
+          "title": "Lease Token",
+          "type": "string"
+        },
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "lease_id",
+        "lease_token",
+        "generation"
+      ],
+      "title": "LeaseInput",
+      "type": "object"
+    },
+    "check_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "resource": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource"
+      ],
+      "title": "ResourceInput",
+      "type": "object"
+    },
+    "override_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "lease_id": {
+          "title": "Lease Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lease_id",
+        "reason"
+      ],
+      "title": "Override",
+      "type": "object"
+    },
+    "send_message": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "recipient_agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recipient Agent Id"
+        },
+        "message_type": {
+          "default": "DIRECT",
+          "enum": [
+            "DIRECT",
+            "ANNOUNCEMENT",
+            "TRANSFER_REQUEST",
+            "INTERFACE_REQUEST",
+            "BLOCKER",
+            "COMPLETION",
+            "DECISION",
+            "REVIEW_REQUEST"
+          ],
+          "title": "Message Type",
+          "type": "string"
+        },
+        "subject": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "body": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Body",
+          "type": "string"
+        },
+        "reply_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reply To"
+        },
+        "related_task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Task Id"
+        },
+        "related_resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Resource"
+        }
+      },
+      "required": [
+        "session_id",
+        "subject",
+        "body"
+      ],
+      "title": "SendMessage",
+      "type": "object"
+    },
+    "get_messages": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "title": "Inbox",
+      "type": "object"
+    },
+    "acknowledge_message": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "message_id": {
+          "title": "Message Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "message_id"
+      ],
+      "title": "MessageRef",
+      "type": "object"
+    },
+    "publish_interface": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Description",
+          "type": "string"
+        },
+        "signatures": {
+          "additionalProperties": true,
+          "title": "Signatures",
+          "type": "object"
+        },
+        "errors": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Errors",
+          "type": "string"
+        },
+        "compatibility_notes": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Compatibility Notes",
+          "type": "string"
+        },
+        "consumers": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Consumers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "session_id",
+        "name",
+        "signatures"
+      ],
+      "title": "InterfaceInput",
+      "type": "object"
+    },
+    "get_interface": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "InterfaceRef",
+      "type": "object"
+    },
+    "propose_interface_change": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Description",
+          "type": "string"
+        },
+        "signatures": {
+          "additionalProperties": true,
+          "title": "Signatures",
+          "type": "object"
+        },
+        "errors": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Errors",
+          "type": "string"
+        },
+        "compatibility_notes": {
+          "default": "",
+          "maxLength": 10000,
+          "title": "Compatibility Notes",
+          "type": "string"
+        },
+        "consumers": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Consumers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "session_id",
+        "name",
+        "signatures"
+      ],
+      "title": "InterfaceInput",
+      "type": "object"
+    },
+    "approve_interface": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "session_id",
+        "version"
+      ],
+      "title": "InterfaceApproval",
+      "type": "object"
+    },
+    "report_blocker": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id",
+        "reason"
+      ],
+      "title": "Blocker",
+      "type": "object"
+    },
+    "submit_work": {
+      "$defs": {
+        "LeaseInput": {
+          "additionalProperties": false,
+          "properties": {
+            "session_id": {
+              "title": "Session Id",
+              "type": "string"
+            },
+            "lease_id": {
+              "title": "Lease Id",
+              "type": "string"
+            },
+            "lease_token": {
+              "title": "Lease Token",
+              "type": "string"
+            },
+            "generation": {
+              "minimum": 1,
+              "title": "Generation",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "session_id",
+            "lease_id",
+            "lease_token",
+            "generation"
+          ],
+          "title": "LeaseInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "work_ref": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Work Ref",
+          "type": "string"
+        },
+        "test_results": {
+          "additionalProperties": true,
+          "title": "Test Results",
+          "type": "object"
+        },
+        "leases": {
+          "items": {
+            "$ref": "#/$defs/LeaseInput"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Leases",
+          "type": "array"
+        }
+      },
+      "required": [
+        "session_id",
+        "task_id",
+        "summary",
+        "work_ref",
+        "test_results",
+        "leases"
+      ],
+      "title": "Submit",
+      "type": "object"
+    },
+    "get_activity": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "check_conflicts": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "get_resource_owner": {
+      "additionalProperties": false,
+      "properties": {
+        "resource": {
+          "maxLength": 1000,
+          "minLength": 3,
+          "title": "Resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource"
+      ],
+      "title": "ResourceInput",
+      "type": "object"
+    },
+    "request_resource_transfer": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "recipient_agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recipient Agent Id"
+        },
+        "message_type": {
+          "default": "DIRECT",
+          "enum": [
+            "DIRECT",
+            "ANNOUNCEMENT",
+            "TRANSFER_REQUEST",
+            "INTERFACE_REQUEST",
+            "BLOCKER",
+            "COMPLETION",
+            "DECISION",
+            "REVIEW_REQUEST"
+          ],
+          "title": "Message Type",
+          "type": "string"
+        },
+        "subject": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Subject",
+          "type": "string"
+        },
+        "body": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Body",
+          "type": "string"
+        },
+        "reply_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reply To"
+        },
+        "related_task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Task Id"
+        },
+        "related_resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Resource"
+        }
+      },
+      "required": [
+        "session_id",
+        "subject",
+        "body"
+      ],
+      "title": "SendMessage",
+      "type": "object"
+    },
+    "get_recent_changes": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "get_affected_agents": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "InterfaceRef",
+      "type": "object"
+    },
+    "get_integration_status": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "prepare_write": {
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "lease_id": {
+          "title": "Lease Id",
+          "type": "string"
+        },
+        "lease_token": {
+          "title": "Lease Token",
+          "type": "string"
+        },
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        },
+        "workspace_id": {
+          "title": "Workspace Id",
+          "type": "string"
+        },
+        "resource": {
+          "title": "Resource",
+          "type": "string"
+        },
+        "expected_revision": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Expected Revision",
+          "type": "string"
+        },
+        "new_revision": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "New Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "lease_id",
+        "lease_token",
+        "generation",
+        "workspace_id",
+        "resource",
+        "expected_revision",
+        "new_revision"
+      ],
+      "title": "PrepareWrite",
+      "type": "object"
+    },
+    "finish_write": {
+      "additionalProperties": false,
+      "properties": {
+        "permit_id": {
+          "title": "Permit Id",
+          "type": "string"
+        },
+        "observed_revision": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Observed Revision",
+          "type": "string"
+        },
+        "outcome": {
+          "default": "COMMIT",
+          "enum": [
+            "COMMIT",
+            "ABORT",
+            "RECONCILE"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "permit_id",
+        "observed_revision"
+      ],
+      "title": "FinishWrite",
+      "type": "object"
+    },
+    "report_conflict": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "OUT_OF_BAND",
+            "REPOSITORY",
+            "STUDIO_EDIT",
+            "TASK",
+            "INTERFACE"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "resources": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Resources",
+          "type": "array"
+        },
+        "agents": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Agents",
+          "type": "array"
+        },
+        "description": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Id"
+        }
+      },
+      "required": [
+        "category",
+        "description"
+      ],
+      "title": "ReportConflict",
+      "type": "object"
+    },
+    "resolve_conflict": {
+      "additionalProperties": false,
+      "properties": {
+        "conflict_id": {
+          "title": "Conflict Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "ACKNOWLEDGED",
+            "RESOLVING",
+            "RESOLVED",
+            "DISMISSED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conflict_id",
+        "status",
+        "reason"
+      ],
+      "title": "ResolveConflict",
+      "type": "object"
+    }
+  }
+}

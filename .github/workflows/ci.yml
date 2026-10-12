@@ -1,0 +1,54 @@
+name: StudioSync checks
+on: [push, pull_request]
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: studiosync_test
+          POSTGRES_USER: studiosync
+          POSTGRES_PASSWORD: test-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U studiosync -d studiosync_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      STUDIOSYNC_TEST_POSTGRES_URL: postgresql+psycopg://studiosync:test-password@127.0.0.1:5432/studiosync_test
+      STUDIOSYNC_DATABASE_URL: postgresql+psycopg://studiosync:test-password@127.0.0.1:5432/studiosync_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.lock
+      - run: pip install --no-deps -e .
+      - run: ruff check apps packages examples scripts conftest.py
+      - run: ruff format --check --quiet apps packages examples scripts conftest.py
+      - run: alembic upgrade head
+      - run: pytest -q --junitxml=test-results/pytest.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-test-results
+          path: test-results/
+  luau:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.lock
+      - run: pip install --no-deps -e .
+      - run: python scripts/fetch_tools.py
+      - run: ./.tools/stylua/stylua.exe --check apps/roblox-plugin/src examples/sample-moba
+      - run: ./.tools/luau/luau-compile.exe --null apps/roblox-plugin/src/Main.plugin.luau
+      - run: ./.tools/luau/luau.exe examples/sample-moba/tests/contracts.luau
+      - run: python examples/five-agent-simulation/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: simulation-report
+          path: test-results/

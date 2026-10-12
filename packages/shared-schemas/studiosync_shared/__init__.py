@@ -1,0 +1,1 @@
+"""Shared validated component contracts."""

@@ -1,0 +1,8 @@
+# Client-specific example: verify your client's current MCP configuration schema.
+[mcp_servers.studiosync]
+command = "python"
+args = ["-m", "studiosync_mcp.server"]
+env_vars = ["STUDIOSYNC_TOKEN"]
+
+[mcp_servers.studiosync.env]
+STUDIOSYNC_CONFIG = "C:/absolute/path/to/game/.studiosync.json"

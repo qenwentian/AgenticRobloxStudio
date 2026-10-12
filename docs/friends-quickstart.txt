@@ -1,0 +1,37 @@
+StudioSync AI - Windows 64-bit
+
+1. Extract this ZIP to a folder you will keep, then double-click StudioSyncAI.exe.
+   Python is bundled; you do not need to install Python or make a virtual environment.
+2. The program installs StudioSyncAI.rbxmx in your own Roblox Studio Plugins folder.
+   Restart Studio and open Plugins > StudioSync AI > StudioSync.
+3. To connect with your friends, enter the team's HTTPS server URL, your developer username
+   and password, select the shared project, and enter your local game workspace folder.
+   Your team administrator must create your account and the owner must grant membership first.
+4. The program starts your localhost bridge and prints a one-time Studio pairing code.
+   Enter that code in the StudioSync Settings panel. Keep the bridge window open while working.
+   Allow required Studio/plugin HTTP permissions if prompted.
+5. Your login expires after eight hours. Reopen the EXE and sign in again to refresh it.
+   Saved access tokens are encrypted for your Windows account. Passwords are not saved.
+
+The EXE includes the plugin, local bridge and official MCP stdio adapter. It does NOT host
+the shared team server. Everyone must connect to one reachable backend; separate localhost
+servers on different computers do not create a shared project. Team server setup is supplied
+in the source repository's README and docs/deployment.md. No credentials are bundled here.
+
+For an AI coding client, use the generic MCP configuration written to
+YOUR_WORKSPACE/.studiosync/mcp-client.json. Verify your client's supported JSON format.
+It launches StudioSyncAI.exe --mcp --config YOUR_WORKSPACE/.studiosync.json.
+Do not move/delete the EXE after configuring that path. Other tools must cooperate with
+the lease/guarded-write workflow; normal external editors remain outside write enforcement.
+
+Only installing the plugin:
+  StudioSyncAI.exe --install-only
+  Or copy StudioSyncAI.rbxmx into Studio's Plugins Folder manually.
+
+Starting an already configured bridge:
+  StudioSyncAI.exe --bridge --config C:\Path\To\Game\.studiosync.json
+
+Uninstall the plugin by removing StudioSyncAI.rbxmx from Studio's Plugins Folder and restarting
+Studio. Close the bridge window to stop it. The portable client has no system service or startup
+task. Its local preferences are under %LOCALAPPDATA%\StudioSyncAI. Do not share workspace
+configuration or saved login files. This development build is not code-signed.
