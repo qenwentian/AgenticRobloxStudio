@@ -61,7 +61,7 @@ def create_app(
             pass
         engine.dispose()
 
-    app = FastAPI(title="StudioSync AI", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="StudioSync AI", version="0.2.0", lifespan=lifespan)
     app.state.engine, app.state.sessions = engine, sessions
     buckets = defaultdict(deque)
 

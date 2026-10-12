@@ -11,7 +11,7 @@ Git commands, Rojo and Team Create can still write outside that mechanism.
 
 ## Install on Windows
 
-Download the [Windows ZIP from GitHub Releases](https://github.com/qenwentian/AgenticRobloxStudio/releases/download/v0.1.0/StudioSyncAI-Windows.zip).
+Download the [Windows ZIP from GitHub Releases](https://github.com/qenwentian/AgenticRobloxStudio/releases/download/v0.2.0/StudioSyncAI-Windows.zip).
 
 For friends, extract `dist/StudioSyncAI-Windows.zip` and run `StudioSyncAI.exe`.
 It installs the Studio plugin and connects their workspace to your team's shared server.
